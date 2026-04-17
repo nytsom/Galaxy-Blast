@@ -14,7 +14,7 @@ except pygame.error:
 # =========================================================
 # WINDOW / TIMING
 # =========================================================
-WIDTH, HEIGHT = 900, 650
+WIDTH, HEIGHT = 1280, 720
 FPS = 60
 
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
