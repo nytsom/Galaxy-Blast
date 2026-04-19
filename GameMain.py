@@ -193,6 +193,7 @@ hit_sound = load_sound("hit.mp3", 0.4)
 kill_sound = load_sound("kill.mp3", 0.5)
 pickup_sound = load_sound("pickup.mp3", 0.5)
 game_over_sound = load_sound("game_over.mp3", 0.7)
+quack_sound = load_sound("quack.mp3", 0.8)
 
 if AUDIO_ENABLED and os.path.exists(music_path):
     try:
