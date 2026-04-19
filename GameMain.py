@@ -4,7 +4,7 @@ import random
 import pygame
 
 #=========================================================
-#Initialize pygame
+#INITIALIZE PYGAME
 #=========================================================
 pygame.init()
 
@@ -406,7 +406,6 @@ def buy_upgrade(upgrade_name):
             max_health += HEALTH_UPGRADE_AMOUNT
             health += HEALTH_UPGRADE_AMOUNT
             play_sound(buy_sound)
-
 # =========================================================
 # DRAW HELPERS
 # =========================================================
