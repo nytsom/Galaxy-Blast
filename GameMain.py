@@ -862,6 +862,7 @@ def handle_mouse_click(mouse_pos):
         settings_open = False
     elif master_mode_button.collidepoint(mouse_pos):
         master_mode = not master_mode
+        play_sound(quack_sound)
         apply_mode_settings(reset_ammo=True)
     elif sound_button.collidepoint(mouse_pos):
         sound_enabled = not sound_enabled
