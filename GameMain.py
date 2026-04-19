@@ -52,8 +52,6 @@ PANEL2 = (40, 40, 60)
 # GAME CONSTANTS
 # =========================================================
 PLAYER_RADIUS = 18
-PLAYER_START_X = WIDTH // 2
-PLAYER_START_Y = HEIGHT // 2
 PLAYER_ACCELERATION = 0.45
 PLAYER_MAX_SPEED = 7.0
 PLAYER_FRICTION = 0.94
@@ -83,70 +81,18 @@ MASTER_MAX_HEALTH = 1
 
 DAMAGE_FLASH_DURATION = 10
 
-# =========================================================
-# SETTINGS UI RECTS
-# =========================================================
-settings_button = pygame.Rect(WIDTH - 125, 8, 110, 34)
-close_button = pygame.Rect(WIDTH // 2 + 130, 120, 100, 38)
-master_mode_button = pygame.Rect(WIDTH // 2 - 210, 170, 420, 40)
-sound_button = pygame.Rect(WIDTH // 2 - 210, 215, 420, 40)
-
-setting_controls = {
-    "Max Speed": {
-        "value_ref": "max_player_speed",
-        "min": 3.0,
-        "max": 12.0,
-        "step": 0.5,
-        "minus": pygame.Rect(WIDTH // 2 + 120, 275, 35, 35),
-        "plus": pygame.Rect(WIDTH // 2 + 250, 275, 35, 35),
-    },
-    "Acceleration": {
-        "value_ref": "player_acceleration",
-        "min": 0.10,
-        "max": 1.20,
-        "step": 0.05,
-        "minus": pygame.Rect(WIDTH // 2 + 120, 315, 35, 35),
-        "plus": pygame.Rect(WIDTH // 2 + 250, 315, 35, 35),
-    },
-    "Friction": {
-        "value_ref": "friction",
-        "min": 0.80,
-        "max": 0.99,
-        "step": 0.01,
-        "minus": pygame.Rect(WIDTH // 2 + 120, 355, 35, 35),
-        "plus": pygame.Rect(WIDTH // 2 + 250, 355, 35, 35),
-    },
-    "Bullet Speed": {
-        "value_ref": "bullet_speed",
-        "min": 6,
-        "max": 25,
-        "step": 1,
-        "minus": pygame.Rect(WIDTH // 2 + 120, 395, 35, 35),
-        "plus": pygame.Rect(WIDTH // 2 + 250, 395, 35, 35),
-    },
-    "Enemy Damage": {
-        "value_ref": "enemy_damage",
-        "min": 1,
-        "max": 30,
-        "step": 1,
-        "minus": pygame.Rect(WIDTH // 2 + 120, 435, 35, 35),
-        "plus": pygame.Rect(WIDTH // 2 + 250, 435, 35, 35),
-    },
-    "Shoot Delay": {
-        "value_ref": "shoot_delay",
-        "min": 2,
-        "max": 20,
-        "step": 1,
-        "minus": pygame.Rect(WIDTH // 2 + 120, 475, 35, 35),
-        "plus": pygame.Rect(WIDTH // 2 + 250, 475, 35, 35),
-    },
-}
+WINDOW_SIZES = [
+    (960, 540),
+    (1280, 720),
+    (1600, 900),
+    (1920, 1080),
+]
 
 # =========================================================
 # RUNTIME STATE
 # =========================================================
-circle_x = PLAYER_START_X
-circle_y = PLAYER_START_Y
+circle_x = WIDTH // 2
+circle_y = HEIGHT // 2
 circle_radius = PLAYER_RADIUS
 
 player_acceleration = PLAYER_ACCELERATION
@@ -192,6 +138,8 @@ game_over_sound_played = False
 sound_enabled = True
 
 master_mode = False
+
+current_window_size_index = 1  # starts at 1280x720
 
 # =========================================================
 # AUDIO
@@ -262,6 +210,82 @@ def clamp(value, minimum, maximum):
 def distance(x1, y1, x2, y2):
     return math.hypot(x1 - x2, y1 - y2)
 
+
+def rebuild_ui_rects():
+    global settings_button, close_button, master_mode_button, sound_button, window_size_button, setting_controls
+
+    settings_button = pygame.Rect(WIDTH - 125, 8, 110, 34)
+    close_button = pygame.Rect(WIDTH // 2 + 165, 120, 100, 38)
+    master_mode_button = pygame.Rect(WIDTH // 2 - 245, 170, 490, 40)
+    sound_button = pygame.Rect(WIDTH // 2 - 245, 215, 490, 40)
+    window_size_button = pygame.Rect(WIDTH // 2 - 245, 260, 490, 40)
+
+    setting_controls = {
+        "Max Speed": {
+            "value_ref": "max_player_speed",
+            "min": 3.0,
+            "max": 12.0,
+            "step": 0.5,
+            "minus": pygame.Rect(WIDTH // 2 + 90, 330, 35, 35),
+            "plus": pygame.Rect(WIDTH // 2 + 235, 330, 35, 35),
+        },
+        "Acceleration": {
+            "value_ref": "player_acceleration",
+            "min": 0.10,
+            "max": 1.20,
+            "step": 0.05,
+            "minus": pygame.Rect(WIDTH // 2 + 90, 370, 35, 35),
+            "plus": pygame.Rect(WIDTH // 2 + 235, 370, 35, 35),
+        },
+        "Friction": {
+            "value_ref": "friction",
+            "min": 0.80,
+            "max": 0.99,
+            "step": 0.01,
+            "minus": pygame.Rect(WIDTH // 2 + 90, 410, 35, 35),
+            "plus": pygame.Rect(WIDTH // 2 + 235, 410, 35, 35),
+        },
+        "Bullet Speed": {
+            "value_ref": "bullet_speed",
+            "min": 6,
+            "max": 25,
+            "step": 1,
+            "minus": pygame.Rect(WIDTH // 2 + 90, 450, 35, 35),
+            "plus": pygame.Rect(WIDTH // 2 + 235, 450, 35, 35),
+        },
+        "Enemy Damage": {
+            "value_ref": "enemy_damage",
+            "min": 1,
+            "max": 30,
+            "step": 1,
+            "minus": pygame.Rect(WIDTH // 2 + 90, 490, 35, 35),
+            "plus": pygame.Rect(WIDTH // 2 + 235, 490, 35, 35),
+        },
+        "Shoot Delay": {
+            "value_ref": "shoot_delay",
+            "min": 2,
+            "max": 20,
+            "step": 1,
+            "minus": pygame.Rect(WIDTH // 2 + 90, 530, 35, 35),
+            "plus": pygame.Rect(WIDTH // 2 + 235, 530, 35, 35),
+        },
+    }
+
+
+def apply_window_size(size_index):
+    global WIDTH, HEIGHT, screen, circle_x, circle_y, current_window_size_index
+
+    current_window_size_index = size_index
+    WIDTH, HEIGHT = WINDOW_SIZES[current_window_size_index]
+    screen = pygame.display.set_mode((WIDTH, HEIGHT))
+
+    circle_x = clamp(circle_x, circle_radius, WIDTH - circle_radius)
+    circle_y = clamp(circle_y, circle_radius + 50, HEIGHT - circle_radius)
+
+    rebuild_ui_rects()
+
+
+rebuild_ui_rects()
 
 # =========================================================
 # GAME MODE / SETTINGS
@@ -382,7 +406,7 @@ def draw_settings_menu():
     overlay.fill((0, 0, 0, 170))
     screen.blit(overlay, (0, 0))
 
-    panel_rect = pygame.Rect(WIDTH // 2 - 260, 90, 520, 430)
+    panel_rect = pygame.Rect(WIDTH // 2 - 290, 90, 580, 520)
     pygame.draw.rect(screen, PANEL, panel_rect, border_radius=18)
     pygame.draw.rect(screen, WHITE, panel_rect, 2, border_radius=18)
 
@@ -397,23 +421,32 @@ def draw_settings_menu():
     sound_text = "Sound: ON" if sound_enabled else "Sound: OFF"
     draw_button(sound_button, sound_text, sound_color)
 
+    window_text = f"Window Size: {WIDTH}x{HEIGHT}"
+    draw_button(window_size_button, window_text, PANEL2)
+
     y_positions = {
-        "Max Speed": 280,
-        "Acceleration": 320,
-        "Friction": 360,
-        "Bullet Speed": 400,
-        "Enemy Damage": 440,
-        "Shoot Delay": 480,
+        "Max Speed": 335,
+        "Acceleration": 375,
+        "Friction": 415,
+        "Bullet Speed": 455,
+        "Enemy Damage": 495,
+        "Shoot Delay": 535,
     }
 
     for name, y in y_positions.items():
         value = get_setting_value(name)
-        draw_text(name, font_small, WHITE, WIDTH // 2 - 200, y)
+        draw_text(
+            name,
+            font_small,
+            WHITE,
+            WIDTH // 2 - 210,
+            y,
+        )
         draw_text(
             format_setting_value(name, value),
             font_small,
             YELLOW,
-            WIDTH // 2 + 195,
+            WIDTH // 2 + 165,
             y,
             center=True,
         )
@@ -422,7 +455,7 @@ def draw_settings_menu():
 
     info_font = pygame.font.Font(None, 22)
     info_text = f"Mode ammo: {ammo}/{max_ammo}    Spawn: {spawn_interval} frames    Max HP: {max_health}"
-    draw_text(info_text, info_font, GRAY, WIDTH // 2, 510, center=True)
+    draw_text(info_text, info_font, GRAY, WIDTH // 2, 585, center=True)
 
 
 def draw_hud():
@@ -549,8 +582,8 @@ def reset_game():
     global damage_flash_timer, shoot_direction, shoot_cooldown
     global player_vx, player_vy, game_over_sound_played, max_health
 
-    circle_x = PLAYER_START_X
-    circle_y = PLAYER_START_Y
+    circle_x = WIDTH // 2
+    circle_y = HEIGHT // 2
     player_vx = 0.0
     player_vy = 0.0
     max_health = MASTER_MAX_HEALTH if master_mode else NORMAL_MAX_HEALTH
@@ -811,7 +844,7 @@ def update_game_state():
 
 
 def handle_mouse_click(mouse_pos):
-    global settings_open, master_mode, sound_enabled
+    global settings_open, master_mode, sound_enabled, current_window_size_index
 
     if settings_button.collidepoint(mouse_pos) and not game_over:
         settings_open = not settings_open
@@ -827,6 +860,9 @@ def handle_mouse_click(mouse_pos):
     elif sound_button.collidepoint(mouse_pos):
         sound_enabled = not sound_enabled
         update_music_state()
+    elif window_size_button.collidepoint(mouse_pos):
+        next_index = (current_window_size_index + 1) % len(WINDOW_SIZES)
+        apply_window_size(next_index)
 
     for name, control in setting_controls.items():
         if control["minus"].collidepoint(mouse_pos):
