@@ -3,6 +3,9 @@ import os
 import random
 import pygame
 
+#=========================================================
+#Initialize pygame
+#=========================================================
 pygame.init()
 
 try:
@@ -86,6 +89,7 @@ WINDOW_SIZES = [
     (1280, 720),
     (1600, 900),
     (1920, 1080),
+    (2540, 1440),
 ]
 
 # =========================================================
@@ -219,6 +223,7 @@ def rebuild_ui_rects():
     master_mode_button = pygame.Rect(WIDTH // 2 - 245, 170, 490, 40)
     sound_button = pygame.Rect(WIDTH // 2 - 245, 215, 490, 40)
     window_size_button = pygame.Rect(WIDTH // 2 - 245, 260, 490, 40)
+
 
     setting_controls = {
         "Max Speed": {
