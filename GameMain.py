@@ -50,6 +50,7 @@ CYAN = (100, 240, 255)
 GRAY = (180, 180, 180)
 PANEL = (25, 25, 40)
 PANEL2 = (40, 40, 60)
+GOLD = (255, 215, 0)
 
 # =========================================================
 # GAME CONSTANTS
@@ -93,6 +94,22 @@ WINDOW_SIZES = [
 ]
 
 # =========================================================
+# SHOP CONSTANTS
+# =========================================================
+SHOP_MAX_AMMO_COST = 5
+SHOP_AMMO_PER_KILL_COST = 7
+SHOP_SPEED_COST = 6
+SHOP_HEALTH_COST = 8
+
+MAX_AMMO_UPGRADE_AMOUNT = 10
+AMMO_PER_KILL_UPGRADE_AMOUNT = 1
+SPEED_UPGRADE_AMOUNT = 0.4
+HEALTH_UPGRADE_AMOUNT = 20
+
+NORMAL_ENEMY_COIN_REWARD = 1
+RED_ENEMY_COIN_REWARD = 3
+
+# =========================================================
 # RUNTIME STATE
 # =========================================================
 circle_x = WIDTH // 2
@@ -113,6 +130,7 @@ bullet_radius = BULLET_RADIUS
 bullet_speed = BULLET_SPEED
 ammo = NORMAL_START_AMMO
 max_ammo = NORMAL_MAX_AMMO
+ammo_per_kill = 3
 shoot_direction = 1
 shoot_cooldown = 0
 shoot_delay = SHOOT_DELAY
@@ -133,10 +151,12 @@ damage_flash_duration = DAMAGE_FLASH_DURATION
 kill_count = 0
 wave = 1
 difficulty_increment = 0
+coins = 0
 
 game_paused = False
 game_over = False
 settings_open = False
+shop_open = False
 running = True
 game_over_sound_played = False
 sound_enabled = True
@@ -194,6 +214,7 @@ kill_sound = load_sound("kill.mp3", 0.5)
 pickup_sound = load_sound("pickup.mp3", 0.5)
 game_over_sound = load_sound("game_over.mp3", 0.7)
 quack_sound = load_sound("quack.mp3", 0.8)
+buy_sound = load_sound("pickup.mp3", 0.7)
 
 if AUDIO_ENABLED and os.path.exists(music_path):
     try:
@@ -218,13 +239,13 @@ def distance(x1, y1, x2, y2):
 
 def rebuild_ui_rects():
     global settings_button, close_button, master_mode_button, sound_button, window_size_button, setting_controls
+    global shop_close_button, shop_buttons
 
     settings_button = pygame.Rect(WIDTH - 125, 8, 110, 34)
     close_button = pygame.Rect(WIDTH // 2 + 165, 120, 100, 38)
     master_mode_button = pygame.Rect(WIDTH // 2 - 245, 170, 490, 40)
     sound_button = pygame.Rect(WIDTH // 2 - 245, 215, 490, 40)
     window_size_button = pygame.Rect(WIDTH // 2 - 245, 260, 490, 40)
-
 
     setting_controls = {
         "Max Speed": {
@@ -275,6 +296,14 @@ def rebuild_ui_rects():
             "minus": pygame.Rect(WIDTH // 2 + 90, 530, 35, 35),
             "plus": pygame.Rect(WIDTH // 2 + 235, 530, 35, 35),
         },
+    }
+
+    shop_close_button = pygame.Rect(WIDTH // 2 + 165, 120, 100, 38)
+    shop_buttons = {
+        "max_ammo": pygame.Rect(WIDTH // 2 - 230, 210, 460, 55),
+        "ammo_per_kill": pygame.Rect(WIDTH // 2 - 230, 280, 460, 55),
+        "speed": pygame.Rect(WIDTH // 2 - 230, 350, 460, 55),
+        "health": pygame.Rect(WIDTH // 2 - 230, 420, 460, 55),
     }
 
 
@@ -346,6 +375,37 @@ def format_setting_value(name, value):
         return f"{value:.2f}"
     return str(value)
 
+# =========================================================
+# SHOP
+# =========================================================
+def buy_upgrade(upgrade_name):
+    global coins, max_ammo, ammo, ammo_per_kill, max_player_speed, max_health, health
+
+    if upgrade_name == "max_ammo":
+        if coins >= SHOP_MAX_AMMO_COST:
+            coins -= SHOP_MAX_AMMO_COST
+            max_ammo += MAX_AMMO_UPGRADE_AMOUNT
+            ammo = min(max_ammo, ammo + MAX_AMMO_UPGRADE_AMOUNT)
+            play_sound(buy_sound)
+
+    elif upgrade_name == "ammo_per_kill":
+        if coins >= SHOP_AMMO_PER_KILL_COST:
+            coins -= SHOP_AMMO_PER_KILL_COST
+            ammo_per_kill += AMMO_PER_KILL_UPGRADE_AMOUNT
+            play_sound(buy_sound)
+
+    elif upgrade_name == "speed":
+        if coins >= SHOP_SPEED_COST:
+            coins -= SHOP_SPEED_COST
+            max_player_speed += SPEED_UPGRADE_AMOUNT
+            play_sound(buy_sound)
+
+    elif upgrade_name == "health":
+        if coins >= SHOP_HEALTH_COST:
+            coins -= SHOP_HEALTH_COST
+            max_health += HEALTH_UPGRADE_AMOUNT
+            health += HEALTH_UPGRADE_AMOUNT
+            play_sound(buy_sound)
 
 # =========================================================
 # DRAW HELPERS
@@ -464,6 +524,51 @@ def draw_settings_menu():
     draw_text(info_text, info_font, GRAY, WIDTH // 2, 585, center=True)
 
 
+def draw_shop_menu():
+    overlay = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
+    overlay.fill((0, 0, 0, 190))
+    screen.blit(overlay, (0, 0))
+
+    panel_rect = pygame.Rect(WIDTH // 2 - 280, 90, 560, 430)
+    pygame.draw.rect(screen, PANEL, panel_rect, border_radius=18)
+    pygame.draw.rect(screen, WHITE, panel_rect, 2, border_radius=18)
+
+    draw_text("SHOP", font_big, GOLD, WIDTH // 2, 130, center=True)
+    draw_button(shop_close_button, "Close", PANEL2)
+
+    draw_text(f"Coins: {coins}", font_med, GOLD, WIDTH // 2, 175, center=True)
+
+    draw_button(
+        shop_buttons["max_ammo"],
+        f"Max Ammo +{MAX_AMMO_UPGRADE_AMOUNT}   Cost: {SHOP_MAX_AMMO_COST}",
+        PANEL2
+    )
+    draw_button(
+        shop_buttons["ammo_per_kill"],
+        f"Ammo Per Kill +{AMMO_PER_KILL_UPGRADE_AMOUNT}   Cost: {SHOP_AMMO_PER_KILL_COST}",
+        PANEL2
+    )
+    draw_button(
+        shop_buttons["speed"],
+        f"Speed +{SPEED_UPGRADE_AMOUNT:.1f}   Cost: {SHOP_SPEED_COST}",
+        PANEL2
+    )
+    draw_button(
+        shop_buttons["health"],
+        f"Max Health +{HEALTH_UPGRADE_AMOUNT}   Cost: {SHOP_HEALTH_COST}",
+        PANEL2
+    )
+
+    draw_text(
+        f"Current: Max Ammo {max_ammo} | Ammo/Kill {ammo_per_kill} | Speed {max_player_speed:.1f} | Max HP {max_health}",
+        font_tiny,
+        GRAY,
+        WIDTH // 2,
+        490,
+        center=True
+    )
+
+
 def draw_hud():
     panel = pygame.Surface((WIDTH, 50), pygame.SRCALPHA)
     panel.fill((20, 20, 30, 180))
@@ -472,8 +577,16 @@ def draw_hud():
 
     ammo_color = (255, 120, 120) if ammo <= 1 else WHITE if ammo > 4 else (255, 180, 120)
     draw_text(f"Ammo: {ammo}/{max_ammo}", font_med, ammo_color, 16, 11)
-    draw_text(f"Score: {kill_count}", font_med, WHITE, WIDTH // 2, 25, center=True)
     draw_text(f"Wave {wave}", font_med, CYAN, WIDTH - 250, 11)
+    score_surface = font_med.render(f"Score: {kill_count}", True, WHITE)
+    coins_surface = font_med.render(f"   Coins: {coins}", True, GOLD)
+
+    total_width = score_surface.get_width() + coins_surface.get_width()
+    start_x = (WIDTH - total_width) // 2
+    y = 25 - score_surface.get_height() // 2
+
+    screen.blit(score_surface, (start_x, y))
+    screen.blit(coins_surface, (start_x + score_surface.get_width(), y))
 
     if master_mode:
         draw_text("MASTER", font_small, RED, WIDTH - 360, 14)
@@ -502,7 +615,7 @@ def draw_hud():
     )
     pygame.draw.rect(screen, WHITE, (ammo_bar_x, ammo_bar_y, ammo_bar_w, ammo_bar_h), 2, border_radius=8)
 
-    draw_text("P = Pause   ESC = Quit", font_tiny, GRAY, WIDTH - 180, HEIGHT - 56)
+    draw_text("P = Pause   B = Shop   ESC = Quit", font_tiny, GRAY, WIDTH - 245, HEIGHT - 56)
 
 
 def draw_pickups():
@@ -583,10 +696,11 @@ def update_particles():
 # GAME HELPERS
 # =========================================================
 def reset_game():
-    global circle_x, circle_y, health, kill_count, wave, ammo
+    global circle_x, circle_y, health, kill_count, wave, ammo, coins, ammo_per_kill
     global difficulty_increment, enemy_spawn_timer, game_over
     global damage_flash_timer, shoot_direction, shoot_cooldown
     global player_vx, player_vy, game_over_sound_played, max_health
+    global max_player_speed, bullet_radius
 
     circle_x = WIDTH // 2
     circle_y = HEIGHT // 2
@@ -609,6 +723,11 @@ def reset_game():
     shoot_cooldown = 0
     game_over = False
     game_over_sound_played = False
+
+    coins = 0
+    ammo_per_kill = 3
+    max_player_speed = PLAYER_MAX_SPEED
+    bullet_radius = BULLET_RADIUS
 
     apply_mode_settings(reset_ammo=True)
 
@@ -697,7 +816,7 @@ def handle_shooting(keys):
 
 
 def handle_bullet_collisions():
-    global kill_count, ammo, wave, difficulty_increment
+    global kill_count, ammo, wave, difficulty_increment, coins
 
     bullets_to_remove = []
     enemies_to_remove = []
@@ -720,8 +839,13 @@ def handle_bullet_collisions():
                 if enemy["hp"] <= 0:
                     enemies_to_remove.append(j)
                     kill_count += 1
-                    ammo = min(max_ammo, ammo + 3)
+                    ammo = min(max_ammo, ammo + ammo_per_kill)
                     play_sound(kill_sound)
+
+                    if enemy["type"] == "red":
+                        coins += RED_ENEMY_COIN_REWARD
+                    else:
+                        coins += NORMAL_ENEMY_COIN_REWARD
 
                     if kill_count % 10 == 0:
                         special_spawn = True
@@ -850,32 +974,42 @@ def update_game_state():
 
 
 def handle_mouse_click(mouse_pos):
-    global settings_open, master_mode, sound_enabled, current_window_size_index
+    global settings_open, master_mode, sound_enabled, current_window_size_index, shop_open
 
-    if settings_button.collidepoint(mouse_pos) and not game_over:
+    if settings_button.collidepoint(mouse_pos) and not game_over and not shop_open:
         settings_open = not settings_open
 
-    if not settings_open:
-        return
+    if settings_open:
+        if close_button.collidepoint(mouse_pos):
+            settings_open = False
+        elif master_mode_button.collidepoint(mouse_pos):
+            master_mode = not master_mode
+            play_sound(quack_sound)
+            apply_mode_settings(reset_ammo=True)
+        elif sound_button.collidepoint(mouse_pos):
+            sound_enabled = not sound_enabled
+            update_music_state()
+        elif window_size_button.collidepoint(mouse_pos):
+            next_index = (current_window_size_index + 1) % len(WINDOW_SIZES)
+            apply_window_size(next_index)
 
-    if close_button.collidepoint(mouse_pos):
-        settings_open = False
-    elif master_mode_button.collidepoint(mouse_pos):
-        master_mode = not master_mode
-        play_sound(quack_sound)
-        apply_mode_settings(reset_ammo=True)
-    elif sound_button.collidepoint(mouse_pos):
-        sound_enabled = not sound_enabled
-        update_music_state()
-    elif window_size_button.collidepoint(mouse_pos):
-        next_index = (current_window_size_index + 1) % len(WINDOW_SIZES)
-        apply_window_size(next_index)
+        for name, control in setting_controls.items():
+            if control["minus"].collidepoint(mouse_pos):
+                change_setting(name, -1)
+            if control["plus"].collidepoint(mouse_pos):
+                change_setting(name, 1)
 
-    for name, control in setting_controls.items():
-        if control["minus"].collidepoint(mouse_pos):
-            change_setting(name, -1)
-        if control["plus"].collidepoint(mouse_pos):
-            change_setting(name, 1)
+    elif shop_open:
+        if shop_close_button.collidepoint(mouse_pos):
+            shop_open = False
+        elif shop_buttons["max_ammo"].collidepoint(mouse_pos):
+            buy_upgrade("max_ammo")
+        elif shop_buttons["ammo_per_kill"].collidepoint(mouse_pos):
+            buy_upgrade("ammo_per_kill")
+        elif shop_buttons["speed"].collidepoint(mouse_pos):
+            buy_upgrade("speed")
+        elif shop_buttons["health"].collidepoint(mouse_pos):
+            buy_upgrade("health")
 
 
 def draw_game():
@@ -905,6 +1039,9 @@ def draw_game():
     if settings_open and not game_over:
         draw_settings_menu()
 
+    if shop_open and not game_over:
+        draw_shop_menu()
+
     if game_over:
         overlay = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
         overlay.fill((30, 0, 0, 190))
@@ -912,9 +1049,10 @@ def draw_game():
         draw_text("GAME OVER", font_big, RED, WIDTH // 2, HEIGHT // 2 - 70, center=True)
         draw_text(f"Final Score: {kill_count}", font_med, WHITE, WIDTH // 2, HEIGHT // 2, center=True)
         draw_text(f"Wave Reached: {wave}", font_med, CYAN, WIDTH // 2, HEIGHT // 2 + 40, center=True)
+        draw_text(f"Coins: {coins}", font_med, GOLD, WIDTH // 2, HEIGHT // 2 + 75, center=True)
         if master_mode:
-            draw_text("MASTER MODE", font_small, RED, WIDTH // 2, HEIGHT // 2 + 70, center=True)
-        draw_text("Press ENTER to Restart", font_small, GRAY, WIDTH // 2, HEIGHT // 2 + 95, center=True)
+            draw_text("MASTER MODE", font_small, RED, WIDTH // 2, HEIGHT // 2 + 105, center=True)
+        draw_text("Press ENTER to Restart", font_small, GRAY, WIDTH // 2, HEIGHT // 2 + 135, center=True)
 
 
 # =========================================================
@@ -933,11 +1071,16 @@ while running:
             if event.key == pygame.K_ESCAPE:
                 if settings_open:
                     settings_open = False
+                elif shop_open:
+                    shop_open = False
                 else:
                     running = False
 
-            elif event.key == pygame.K_p and not game_over and not settings_open:
+            elif event.key == pygame.K_p and not game_over and not settings_open and not shop_open:
                 game_paused = not game_paused
+
+            elif event.key == pygame.K_b and not game_over and not settings_open:
+                shop_open = not shop_open
 
             elif event.key == pygame.K_RETURN and game_over:
                 reset_game()
@@ -945,7 +1088,7 @@ while running:
         elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             handle_mouse_click(event.pos)
 
-    if not game_over and not game_paused and not settings_open:
+    if not game_over and not game_paused and not settings_open and not shop_open:
         update_game_state()
 
     draw_game()
