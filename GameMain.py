@@ -17,6 +17,9 @@ except pygame.error:
 # =========================================================
 # WINDOW / TIMING
 # =========================================================
+icon = pygame.image.load('space.png')
+pygame.display.set_icon(icon)
+
 WIDTH, HEIGHT = 1280, 720
 FPS = 60
 
