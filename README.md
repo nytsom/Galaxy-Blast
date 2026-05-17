@@ -15,3 +15,4 @@ How to Play; tutorial:
 3. Clone repo; open a clone repository menu and paste link of this repo or open terminal and git clone https://github.com/nytsom/Galaxy-Blast
 4. open terminal and pip install pygame-ce (ce stands for community edition. It gets more updates.) refer to https://www.pygame.org for any documentation needed
 5. Run the game!
+Watch tutotial --> https://www.youtube.com/watch?v=IVHFdF_mfKg
