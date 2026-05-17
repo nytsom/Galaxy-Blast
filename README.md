@@ -5,7 +5,7 @@ Features include:
 2. Ammo and Health system
 3. Settings Menu to adjust constants temporarily until game restart
 4. Shop for buying "power-ups/boosts"
-5. Sound Affects
+5. Sound FX
 
 BONUS: Easy to run on most to any computer
 
