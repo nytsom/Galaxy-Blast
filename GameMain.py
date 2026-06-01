@@ -19,7 +19,6 @@ except pygame.error:
 # =========================================================
 #icon = pygame.image.load('space.png')
 #pygame.display.set_icon(icon)
-
 WIDTH, HEIGHT = 1280, 720
 FPS = 60
 
@@ -99,10 +98,10 @@ WINDOW_SIZES = [
 # =========================================================
 # SHOP CONSTANTS
 # =========================================================
-SHOP_MAX_AMMO_COST = 5
-SHOP_AMMO_PER_KILL_COST = 7
-SHOP_SPEED_COST = 6
-SHOP_HEALTH_COST = 8
+SHOP_MAX_AMMO_COST = 8
+SHOP_AMMO_PER_KILL_COST = 15
+SHOP_SPEED_COST = 10
+SHOP_HEALTH_COST = 20
 
 MAX_AMMO_UPGRADE_AMOUNT = 10
 AMMO_PER_KILL_UPGRADE_AMOUNT = 1
